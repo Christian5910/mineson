@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>MinesON!</title>
+  <meta name="description" content="MinesON!: campo minado com a estética ON!: tutorial para quem nunca jogou, dicas, explosão e jogo offline." />
+  <meta name="theme-color" content="#007ACC" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="assets/favicon.ico" />
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
+  <script>/* aplica tema e animações antes de pintar (evita "piscar") */
+  try{var c=JSON.parse(localStorage.getItem('mineson.cfg')||'{}'),d=document.documentElement,r=c.reduzir;
+  if(r===undefined)r=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(c.escuro)d.setAttribute('data-tema','escuro');if(r)d.setAttribute('data-reduzir','1')}catch(e){}</script>
+  <link rel="stylesheet" href="on.css" />
+  <link rel="stylesheet" href="colorido.css" />
+  <script defer src="on.js"></script>
+  <script defer src="javinhas.js"></script>
+</head>
+<body>
+  <header>
+    <button id="menu-btn" type="button" aria-label="Abrir menu" aria-controls="drawer" data-abrir="drawer">☰</button>
+    <h1>MinesON!</h1>
+    <button id="howto-btn" class="header-btn" type="button" aria-haspopup="dialog" data-abrir="howto-modal">Como Jogar</button>
+  </header>
+
+  <div id="overlay" hidden></div>
+
+  <!-- Modal "Como Jogar" -->
+  <div id="howto-modal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="howto-title">
+    <div class="modal-content">
+      <div class="modal-head">
+        <h2 id="howto-title">Como Jogar MinesON! :3</h2>
+        <button class="modal-x" type="button" aria-label="Fechar" data-fechar>✕</button>
+      </div>
+      <div class="modal-body">
+        <h3>O objetivo</h3>
+        <p>Debaixo das casas fechadas há <strong>minas escondidas</strong>. Seu trabalho é abrir <strong>todas as casas que não têm mina</strong>. Se abrir uma com mina, a partida acaba com uma explosão. Para ganhar não é preciso marcar todas as minas, basta abrir todas as casas seguras.</p>
+
+        <h3>O que significam os números</h3>
+        <p>Quando você abre uma casa segura, aparece um número. Ele diz <strong>quantas minas existem nas 8 casas vizinhas</strong>: em cima, embaixo, dos lados e nas diagonais.</p>
+        <div class="mini" style="--cols:3" aria-label="Exemplo: uma mina no centro, todas as casas ao redor mostram 1">
+          <span class="mc a n1">1</span><span class="mc a n1">1</span><span class="mc a n1">1</span>
+          <span class="mc a n1">1</span><span class="mc f">💣</span><span class="mc a n1">1</span>
+          <span class="mc a n1">1</span><span class="mc a n1">1</span><span class="mc a n1">1</span>
+        </div>
+        <p class="legenda">A mina no centro encosta nas 8 casas ao redor, então cada uma delas mostra 1.</p>
+        <ul>
+          <li><span class="num n1">1</span> uma mina vizinha &nbsp; <span class="num n2">2</span> duas &nbsp; <span class="num n3">3</span> três &nbsp; <span class="num n4">4</span> quatro, e assim até <span class="num n8">8</span> (todas as casas ao redor são minas).</li>
+          <li>Uma casa aberta sem número não tem nenhuma mina por perto. O jogo abre as vizinhas sozinho, e isso se espalha até encontrar números. É a cascata do começo da partida.</li>
+        </ul>
+
+        <h3>A primeira jogada é segura</h3>
+        <p>Toque em qualquer casa para começar. A primeira casa e as vizinhas dela nunca têm mina, então você sempre começa com um espaço aberto.</p>
+
+        <h3>Como pensar</h3>
+        <p>O jogo se resolve com lógica, e não com sorte. Olhe para um número e compare com as casas fechadas ao redor dele:</p>
+        <ol>
+          <li>Se o número é igual à quantidade de casas fechadas em volta, todas elas são minas. Um 1 com uma única casa fechada ao lado indica uma mina ali, e um 3 com três casas fechadas indica três minas.</li>
+          <li>Se o número já tem as bandeiras certas ao redor, as outras casas fechadas dele são <strong>seguras</strong> e podem ser abertas.</li>
+          <li>Sem certeza, não chute. Procure outro número para resolver antes, porque a resposta muitas vezes aparece ao olhar dois números juntos.</li>
+        </ol>
+        <p>Um exemplo: aqui só existe uma casa fechada, a do "?". Cada 1 encosta nela, então ela é uma mina:</p>
+        <div class="mini" style="--cols:3" aria-label="Exemplo de dedução: cada 1 encosta numa única casa fechada, então ela é mina">
+          <span class="mc a"></span><span class="mc a"></span><span class="mc a"></span>
+          <span class="mc a n1">1</span><span class="mc a n1">1</span><span class="mc a"></span>
+          <span class="mc f alvo">?</span><span class="mc a n1">1</span><span class="mc a"></span>
+        </div>
+        <p class="legenda">A casa "?" é uma mina. Marque com 🚩.</p>
+
+        <h3>Bandeiras</h3>
+        <p>A bandeira é uma anotação sua: "aqui tem mina, não abra". Ela também protege a casa de um toque sem querer. O contador Minas mostra quantas minas ainda faltam marcar (o total menos as suas bandeiras). Se colocou uma por engano, marque a casa de novo para tirá-la.</p>
+
+        <h3><svg class="ic-inline" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M11.5 6.027a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0m-1.5 1.5a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1m2.5-.5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0m-1.5 1.5a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1m-6.5-3h1v1h1v1h-1v1h-1v-1h-1v-1h1z"/><path d="M3.051 3.26a.5.5 0 0 1 .354-.613l1.932-.518a.5.5 0 0 1 .62.39c.655-.079 1.35-.117 2.043-.117.72 0 1.443.041 2.12.126a.5.5 0 0 1 .622-.399l1.932.518a.5.5 0 0 1 .306.729q.211.136.373.297c.408.408.78 1.05 1.095 1.772.32.733.599 1.591.805 2.466s.34 1.78.364 2.606c.024.816-.059 1.602-.328 2.21a1.42 1.42 0 0 1-1.445.83c-.636-.067-1.115-.394-1.513-.773-.245-.232-.496-.526-.739-.808-.126-.148-.25-.292-.368-.423-.728-.804-1.597-1.527-3.224-1.527s-2.496.723-3.224 1.527c-.119.131-.242.275-.368.423-.243.282-.494.575-.739.808-.398.38-.877.706-1.513.773a1.42 1.42 0 0 1-1.445-.83c-.27-.608-.352-1.395-.329-2.21.024-.826.16-1.73.365-2.606.206-.875.486-1.733.805-2.466.315-.722.687-1.364 1.094-1.772a2.3 2.3 0 0 1 .433-.335l-.028-.079zm2.036.412c-.877.185-1.469.443-1.733.708-.276.276-.587.783-.885 1.465a14 14 0 0 0-.748 2.295 12.4 12.4 0 0 0-.339 2.406c-.022.755.062 1.368.243 1.776a.42.42 0 0 0 .426.24c.327-.034.61-.199.929-.502.212-.202.4-.423.615-.674.133-.156.276-.323.44-.504C4.861 9.969 5.978 9.027 8 9.027s3.139.942 3.965 1.855c.164.181.307.348.44.504.214.251.403.472.615.674.318.303.601.468.929.503a.42.42 0 0 0 .426-.241c.18-.408.265-1.02.243-1.776a12.4 12.4 0 0 0-.339-2.406 14 14 0 0 0-.748-2.295c-.298-.682-.61-1.19-.885-1.465-.264-.265-.856-.523-1.733-.708-.85-.179-1.877-.27-2.913-.27s-2.063.091-2.913.27"/></svg> Controles</h3>
+        <ul>
+          <li>No celular, no modo Normal, toque numa casa para abrir. Para colocar ou tirar a bandeira, segure o dedo por um instante.</li>
+          <li>No computador, no modo Normal, clique para abrir e use o botão direito para a bandeira.</li>
+          <li>No teclado, as setas movem, <kbd>Enter</kbd> ou <kbd>Espaço</kbd> abre, <kbd>F</kbd> marca a bandeira e <kbd>R</kbd> começa um novo jogo.</li>
+          <li>Para <strong>abrir em volta</strong>, toque num número que já tem a quantidade certa de bandeiras ao redor. O jogo abre todas as outras vizinhas de uma vez, e se alguma bandeira estiver errada, a mina explode.</li>
+        </ul>
+
+        <h3>Modo bandeira</h3>
+        <p>É um jeito alternativo de jogar, bom para telas pequenas. Ele inverte os controles: o toque simples (ou o clique) coloca a bandeira, e segurar (ou clicar com o botão direito) abre a casa.</p>
+        <div class="dica">O modo é escolhido antes da primeira jogada. Depois que a partida começa ele fica travado 🔒, para ninguém se confundir no meio do jogo. Para trocar, comece um novo jogo.</div>
+
+        <h3>Botão Dica</h3>
+        <p>Travou? Toque em <strong>Dica</strong>. O jogo procura uma jogada que dá para ter certeza, destaca a casa e explica o raciocínio, o que ajuda a aprender. Quem usa dica não bate recorde naquela partida.</p>
+
+        <h3>Dificuldades</h3>
+        <ul>
+          <li>Iniciante: 9×9 com 10 minas. É o melhor lugar para começar.</li>
+          <li>Intermediário: 16×16 com 40 minas.</li>
+          <li>Especialista: 30×16 com 99 minas. No celular, o tabuleiro gira para 16×30 para caber.</li>
+        </ul>
+
+        <h3>Vitória, derrota e recordes</h3>
+        <p>Ao abrir todas as casas seguras você vence e o relógio para. O melhor tempo de cada dificuldade fica salvo no menu ☰, junto com as vitórias e a sequência. A partida também fica salva, então dá para fechar a aba e continuar depois.</p>
+
+        <h3>Dicas para jogar melhor</h3>
+        <ul>
+          <li>Comece pelas quinas e bordas dos espaços abertos. Lá há menos casas vizinhas e a dedução é mais fácil.</li>
+          <li>Resolva primeiro os números 1 encostados em casas fechadas.</li>
+          <li>Marque as minas que descobrir, porque as bandeiras deixam o resto do tabuleiro mais fácil de ler.</li>
+          <li>Se só restar um palpite, escolha a casa longe dos números altos, onde há menos chance de mina.</li>
+        </ul>
+
+        <div class="dica">Se tocar em Novo jogo no meio de uma partida, o jogo pergunta antes. Desistir de uma partida já começada conta como derrota.</div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-primary" type="button" data-fechar data-foco>Entendi, vamos jogar!</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Área do jogo -->
+  <main id="main">
+    <section id="game-area">
+      <div class="score-board">
+        <div class="score-box"><span class="label">Minas</span><span class="value" id="mines-left">000</span></div>
+        <p id="best-line"></p>
+        <div class="score-box"><span class="label">Tempo</span><span class="value" id="timer">000</span></div>
+      </div>
+
+      <div id="difficulty" role="group" aria-label="Dificuldade">
+        <button class="seg-btn" type="button" data-level="easy" aria-pressed="true">Iniciante</button>
+        <button class="seg-btn" type="button" data-level="medium" aria-pressed="false">Intermediário</button>
+        <button class="seg-btn" type="button" data-level="hard" aria-pressed="false">Especialista</button>
+      </div>
+
+      <div id="toolbar">
+        <div id="mode" role="group" aria-label="Modo de jogo (só muda antes da primeira jogada)">
+          <button class="seg-btn" type="button" data-mode="normal" aria-pressed="true">👆 Normal</button>
+          <button class="seg-btn" type="button" data-mode="bandeira" aria-pressed="false">🚩 Modo bandeira</button>
+        </div>
+        <button id="hint-btn" class="tool-btn" type="button">💡 Dica</button>
+      </div>
+      <p id="mode-help" aria-live="polite"></p>
+
+      <div id="board-stage">
+        <div id="board-wrap">
+          <div id="board" role="grid" aria-label="Campo minado" tabindex="0"></div>
+        </div>
+        <div id="fx" aria-hidden="true"></div>
+      </div>
+
+      <div id="message-container">
+        <div id="message-area" role="status" aria-live="polite"></div>
+      </div>
+
+      <button id="restart-btn" class="btn btn-primary" type="button">Novo jogo</button>
+    </section>
+  </main>
+
+  <footer>
+    <p class="assinatura-final">© Christian, 2026</p>
+  </footer>
+</body>
+</html>

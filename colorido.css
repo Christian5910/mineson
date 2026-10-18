@@ -1,0 +1,625 @@
+/* ==========================================================================
+   MinesON! — colorido.css  (só o que é do jogo)
+   Header, menu, modais, rodapé, botões e scrollbar vêm de on.css.
+
+   Índice
+   1. Layout
+   2. Placar, dificuldade, modo e dica
+   3. Tabuleiro e casas
+   4. Efeitos (explosão, dica)
+   5. Mensagens
+   6. "Como Jogar": tabuleiros de exemplo
+   7. Modo escuro
+   8. Responsividade
+   ========================================================================== */
+
+:root {
+    --cell-size: 32px;
+    --cell-gap: 2px;
+    --cols: 9;
+    --cell-closed: #a6d4ff;
+    --cell-closed-border: #bbdefb;
+    --cell-open: rgba(6, 47, 81, 0.6);
+}
+
+
+/* ==========================================================================
+   1. Layout (o tabuleiro ganha o máximo de espaço)
+   ========================================================================== */
+main {
+    flex: 1;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 8px 6px 4px;
+}
+
+#game-area {
+    width: 100%;
+    max-width: 1100px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+}
+
+
+/* ==========================================================================
+   2. Placar, dificuldade, modo e dica
+   ========================================================================== */
+.score-board {
+    display: flex;
+    align-items: stretch;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+    max-width: var(--max-width);
+}
+
+.score-box {
+    background: rgba(6, 47, 81, 0.8);
+    border: 2px solid var(--accent-blue);
+    border-radius: 12px;
+    padding: 4px 14px;
+    text-align: center;
+    min-width: 92px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.score-box .label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    opacity: 0.8;
+}
+
+.score-box .value {
+    font-size: 1.6rem;
+    line-height: 1.15;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.04em;
+    text-shadow: 0 0 10px rgba(144, 202, 249, 0.5);
+}
+
+#best-line {
+    flex: 1;
+    align-self: center;
+    text-align: center;
+    font-size: 0.8rem;
+    color: #a7c7f7;
+}
+
+#best-line b {
+    display: block;
+    font-size: 1rem;
+    color: var(--semi-correct);
+}
+
+#difficulty,
+#toolbar {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+    max-width: var(--max-width);
+}
+
+#mode {
+    display: flex;
+    gap: 8px;
+    flex: 3;
+}
+
+.seg-btn,
+.tool-btn {
+    flex: 1;
+    background: rgba(227, 242, 253, 0.1);
+    border: 2px solid rgba(144, 202, 249, 0.5);
+    color: var(--light-blue);
+    padding: 6px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+    min-height: 44px;
+}
+
+.seg-btn:active:not(:disabled),
+.tool-btn:active:not(:disabled) {
+    background: rgba(227, 242, 253, 0.2);
+    transform: scale(0.96);
+}
+
+.seg-btn[aria-pressed="true"] {
+    background: #1976d2;
+    border-color: rgba(144, 202, 249, 0.9);
+    color: #fff;
+}
+
+/* modo travado depois da 1ª jogada */
+.seg-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+}
+
+.seg-btn[aria-pressed="true"]:disabled {
+    opacity: 0.85;
+}
+
+#mode.travado {
+    position: relative;
+}
+
+.tool-btn {
+    flex: 1.1;
+}
+
+.tool-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+#mode-help {
+    width: 100%;
+    max-width: var(--max-width);
+    text-align: center;
+    font-size: 0.82rem;
+    color: #a7c7f7;
+    min-height: 1.2em;
+    margin-top: -4px;
+}
+
+
+/* ==========================================================================
+   3. Tabuleiro e casas
+   ========================================================================== */
+#board-stage {
+    position: relative;
+    max-width: 100%;
+}
+
+#board-wrap {
+    max-width: 100%;
+    overflow: auto;
+    background: rgba(187, 222, 251, 0.2);
+    border: 2px solid rgba(144, 202, 249, 0.4);
+    border-radius: 12px;
+}
+
+#board {
+    display: grid;
+    grid-template-columns: repeat(var(--cols), var(--cell-size));
+    grid-auto-rows: var(--cell-size);
+    gap: var(--cell-gap);
+    padding: 6px;
+    width: max-content;
+    margin: 0 auto;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    touch-action: manipulation;
+    outline: none;
+}
+
+.cell {
+    width: var(--cell-size);
+    height: var(--cell-size);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    border-radius: clamp(3px, calc(var(--cell-size) * 0.22), 8px);
+    background: var(--cell-closed);
+    border: 2px solid var(--cell-closed-border);
+    font-weight: 800;
+    font-size: calc(var(--cell-size) * 0.56);
+    line-height: 1;
+    color: var(--primary-blue);
+    cursor: pointer;
+    transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.cell.pressed:not(.open) {
+    transform: scale(0.92);
+    filter: brightness(0.9);
+}
+
+.cell.open {
+    background: var(--cell-open);
+    border-color: rgba(144, 202, 249, 0.16);
+    cursor: default;
+    animation: popIn 0.35s var(--ease) both;
+    animation-delay: var(--d, 0ms);
+}
+
+/* cores dos números (usadas no tabuleiro e nos exemplos) */
+.n1 { color: #90caf9; }
+.n2 { color: #81c784; }
+.n3 { color: #ff8a80; }
+.n4 { color: #b39ddb; }
+.n5 { color: #ffb74d; }
+.n6 { color: #4dd0e1; }
+.n7 { color: #eceff1; }
+.n8 { color: #b0bec5; }
+
+/* número que ainda pode ser "acordado" */
+.cell.open[class*="n"]:not(.mine) {
+    cursor: pointer;
+}
+
+/* bandeira, mina e X (SVG embutido) */
+.cell.flag::after,
+.cell.mine::after,
+.cell.wrong::before,
+.cell.wrong::after {
+    content: "";
+    position: absolute;
+    inset: 12%;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    pointer-events: none;
+}
+
+.cell.flag::after {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 3v18' stroke='%23eceff1' stroke-width='2.2' stroke-linecap='round'/%3E%3Cpath d='M7.5 4l11 4.5-11 4.5z' fill='%23e53935'/%3E%3Cpath d='M4 21h10' stroke='%23263238' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E");
+    animation: pop 0.25s ease backwards;
+}
+
+.cell.mine::after,
+.cell.wrong::after {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg stroke='%23cfd8dc' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M12 2.5v19M2.5 12h19M5.3 5.3l13.4 13.4M18.7 5.3L5.3 18.7'/%3E%3C/g%3E%3Ccircle cx='12' cy='12' r='6.6' fill='%2337474f' stroke='%23cfd8dc'/%3E%3Ccircle cx='9.7' cy='9.7' r='1.8' fill='%23fff' opacity='.85'/%3E%3C/svg%3E");
+}
+
+.cell.mine {
+    background: rgba(38, 50, 56, 0.95);
+    border-color: rgba(144, 202, 249, 0.16);
+    animation: popIn 0.35s var(--ease) both;
+    animation-delay: var(--d, 0ms);
+}
+
+/* a mina que explodiu */
+.cell.boom {
+    background: var(--danger);
+    border-color: var(--danger-dark);
+    animation: popIn 0.35s var(--ease) both, boomFlash 0.8s ease-in-out 2;
+}
+
+/* bandeira em casa sem mina */
+.cell.wrong {
+    background: rgba(38, 50, 56, 0.95);
+    border-color: rgba(211, 47, 47, 0.7);
+    animation: popIn 0.35s var(--ease) both;
+    animation-delay: var(--d, 0ms);
+}
+
+.cell.wrong::before {
+    z-index: 1;
+    inset: 4%;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M4 4l16 16M20 4L4 20' stroke='%23ef5350' stroke-width='2.6' stroke-linecap='round'/%3E%3C/svg%3E");
+}
+
+.cell.wrong::after {
+    opacity: 0.85;
+}
+
+#board:focus-visible .cell.kbd {
+    outline: 3px solid var(--semi-correct);
+    outline-offset: 1px;
+    z-index: 2;
+}
+
+.cell.wave {
+    animation: wave 0.6s ease both;
+    animation-delay: var(--d, 0ms);
+}
+
+#board.fresh .cell {
+    animation: appear 0.3s ease backwards;
+    animation-delay: calc((var(--r) + var(--c)) * 14ms);
+}
+
+
+/* ==========================================================================
+   4. Efeitos (explosão e dica)
+   ========================================================================== */
+/* a explosão pode passar da área do jogo, mas nunca cria rolagem lateral */
+main { overflow-x: clip; }
+
+#fx {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 5;
+}
+
+/* o GIF não tem repetição: toca uma vez só e some */
+.boom-gif {
+    position: absolute;
+    image-rendering: pixelated;
+    pointer-events: none;
+}
+
+.boom-flash {
+    position: absolute;
+    inset: -10px;
+    border-radius: 16px;
+    background: radial-gradient(circle, rgba(255, 214, 102, 0.55), rgba(229, 57, 53, 0.35) 55%, transparent 80%);
+    animation: flash 0.6s ease-out forwards;
+}
+
+.cell.dica-alvo {
+    outline: 3px solid var(--semi-correct);
+    outline-offset: 1px;
+    z-index: 2;
+    animation: pulsa 0.9s ease-in-out infinite;
+}
+
+.cell.dica-fonte {
+    outline: 3px dashed rgba(251, 192, 45, 0.9);
+    outline-offset: 1px;
+    z-index: 1;
+}
+
+@keyframes pulsa {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.12); }
+}
+
+
+/* ==========================================================================
+   5. Mensagens (cores chapadas, sem degradê)
+   ========================================================================== */
+#message-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: var(--max-width);
+}
+
+#message-area {
+    min-height: 1.4em;
+    font-weight: 700;
+    text-align: center;
+    color: var(--light-blue);
+    padding: 10px 16px;
+    border-radius: 12px;
+    transition: background 0.4s var(--ease), color 0.4s var(--ease);
+    width: 100%;
+    border: 2px solid transparent;
+}
+
+#message-area:empty {
+    padding-block: 0;
+    min-height: 0;
+    border-width: 0;
+}
+
+#message-area.victory {
+    background: var(--correct);
+    color: #fff;
+    animation: celebrate 0.6s var(--ease);
+    font-size: 1.1rem;
+    border-color: var(--correct-dark);
+}
+
+#message-area.defeat {
+    background: var(--wrong);
+    color: #eceff1;
+    animation: slideUp 0.5s var(--ease);
+    border-color: var(--wrong-dark);
+}
+
+#message-area.hint {
+    background: rgba(251, 192, 45, 0.16);
+    border: 2px solid rgba(251, 192, 45, 0.6);
+    border-left-width: 2px;
+    color: #fff8e1;
+    font-weight: 600;
+    animation: slideUp 0.35s var(--ease);
+}
+
+#message-area.error {
+    background: rgba(255, 180, 180, 0.1);
+    color: #ffb4b4;
+    border: 2px solid rgba(255, 180, 180, 0.4);
+    animation: shake 0.5s ease-in-out;
+}
+
+
+/* ==========================================================================
+   6. "Como Jogar": tabuleiros de exemplo
+   ========================================================================== */
+.mini {
+    display: grid;
+    grid-template-columns: repeat(var(--cols), 36px);
+    gap: 3px;
+    justify-content: center;
+    width: max-content;
+    max-width: 100%;
+    margin-inline: auto;
+    padding: 10px;
+    border-radius: 12px;
+    background: rgba(13, 60, 117, 0.1);
+    border: 1px dashed var(--modal-line);
+}
+
+.mc {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 7px;
+    font-weight: 800;
+    font-size: 1.15rem;
+}
+
+.mc.f {
+    background: var(--cell-closed);
+    border: 2px solid var(--cell-closed-border);
+    color: var(--primary-blue);
+}
+
+.mc.a {
+    background: #0b3560;
+}
+
+.mc.alvo {
+    outline: 3px solid var(--semi-correct);
+    outline-offset: 1px;
+    animation: pulsa 0.9s ease-in-out infinite;
+}
+
+.num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.5em;
+    height: 1.5em;
+    border-radius: 6px;
+    background: #0b3560;
+    font-weight: 800;
+    font-size: 0.95em;
+}
+
+
+/* ==========================================================================
+   7. Modo escuro
+   ========================================================================== */
+html[data-tema="escuro"] {
+    --cell-closed: #234672;
+    --cell-closed-border: #35598a;
+    --cell-open: rgba(2, 8, 16, 0.65);
+}
+
+html[data-tema="escuro"] .cell { color: var(--light-blue); }
+html[data-tema="escuro"] .score-box { background: rgba(3, 12, 24, 0.8); }
+html[data-tema="escuro"] #board-wrap { background: rgba(144, 202, 249, 0.08); }
+html[data-tema="escuro"] .mc.f { color: var(--light-blue); }
+html[data-tema="escuro"] .mini { background: rgba(144, 202, 249, 0.07); }
+
+
+/* ==========================================================================
+   8. Responsividade
+   ========================================================================== */
+@keyframes popIn {
+    0% { transform: scale(0.8); opacity: 0; }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes pop {
+    0% { transform: scale(0); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+@keyframes appear {
+    0% { opacity: 0; transform: scale(0); }
+    100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-4px); }
+    40%, 80% { transform: translateX(4px); }
+}
+
+@keyframes celebrate {
+    0% { transform: scale(0.9) rotate(-2deg); opacity: 0; }
+    50% { transform: scale(1.02) rotate(2deg); }
+    100% { transform: scale(1) rotate(0); opacity: 1; }
+}
+
+@keyframes slideUp {
+    0% { transform: translateY(20px); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes wave {
+    0%, 100% { transform: translateY(0) scale(1); }
+    40% { transform: translateY(-6px) scale(1.1); }
+}
+
+@keyframes boomFlash {
+    0%, 100% { box-shadow: 0 0 0 rgba(229, 57, 53, 0); }
+    50% { box-shadow: 0 0 26px rgba(229, 57, 53, 0.95); }
+}
+
+@keyframes flash {
+    0% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+@media (min-width: 768px) {
+    main {
+        padding-top: 14px;
+    }
+
+    #board {
+        padding: 10px;
+    }
+
+    .cell {
+        border-width: 3px;
+    }
+
+    .cell:not(.open):hover {
+        transform: translateY(-1px);
+        filter: brightness(1.08);
+        border-color: rgba(227, 242, 253, 0.9);
+    }
+
+    .seg-btn:hover:not(:disabled),
+    .tool-btn:hover:not(:disabled) {
+        background: rgba(227, 242, 253, 0.18);
+        border-color: rgba(144, 202, 249, 0.8);
+    }
+
+    .seg-btn[aria-pressed="true"]:hover:not(:disabled) {
+        background: #1976d2;
+    }
+}
+
+@media (max-width: 520px) {
+    #board {
+        --cell-gap: 1px;
+    }
+
+    .score-box {
+        min-width: 78px;
+        padding: 3px 10px;
+    }
+
+    .score-box .value {
+        font-size: 1.4rem;
+    }
+
+    .seg-btn {
+        font-size: 0.78rem;
+        padding: 6px 4px;
+    }
+
+    #mode .seg-btn {
+        font-size: 0.75rem;
+    }
+}
+
+@media (max-width: 380px) {
+    .score-box {
+        min-width: 68px;
+    }
+
+    .seg-btn {
+        font-size: 0.7rem;
+    }
+
+    #mode .seg-btn {
+        font-size: 0.68rem;
+    }
+}
